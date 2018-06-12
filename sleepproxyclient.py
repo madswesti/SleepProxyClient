@@ -69,12 +69,12 @@ def main() :
 		interfaces = sysIfaces
 
 	if (DEBUG) :
-		print "Interfaces: ", ", ".join(interfaces)
+		print("Interfaces: ", ", ".join(interfaces))
 
 
 	for iface in interfaces :
 		if iface not in sysIfaces :
-			print "Invalid interface specified: ", iface
+			print("Invalid interface specified: ", iface)
 		elif "lo" not in iface:
 			sendUpdateForInterface(iface)
 
@@ -83,7 +83,7 @@ def main() :
 def sendUpdateForInterface(interface) :
 # send update request per interface
 	if (DEBUG) :
-		print "-sendUpdateForInterface: ", interface
+		print("-sendUpdateForInterface: ", interface)
 
 
 	# get IPs for given interface
@@ -99,11 +99,11 @@ def sendUpdateForInterface(interface) :
 			ipArr.append(ipEntry['addr'].split('%')[0]) # fix trailing %<iface>
 
 	if (len(ipArr) == 0) :
-		print "No IPv4 or IPv6 Addresses found for interface: ", interface
+		print("No IPv4 or IPv6 Addresses found for interface: ", interface)
 		return
 
 	if (DEBUG) :
-		print "-sendUpdateForInterface: IPs: ", ", ".join(ipArr)
+		print("-sendUpdateForInterface: IPs: ", ", ".join(ipArr))
 
 
 	# get HW Addr
@@ -113,13 +113,13 @@ def sendUpdateForInterface(interface) :
 		hwAddr = ifaddrs[netifaces.AF_LINK][0]['addr']
 
 	if (DEBUG) :
-		print "-sendUpdateForInterface: HW-Addr: ", hwAddr
+		print("-sendUpdateForInterface: HW-Addr: ", hwAddr)
 
 
 	# get all available sleep proxies
 	proxy = discoverSleepProxyForInterface(interface)
 	if (proxy == False) :
-		print "No sleep proxy available for interface: ", interface
+		print("No sleep proxy available for interface: ", interface)
 		return
 
 
@@ -128,7 +128,7 @@ def sendUpdateForInterface(interface) :
 	host_local = host + ".local"
 
 	if (DEBUG) :
-		print "-sendUpdateForInterface: Host: " + host_local
+		print("-sendUpdateForInterface: Host: " + host_local)
 
 
 	# create update request
@@ -157,7 +157,7 @@ def sendUpdateForInterface(interface) :
 		port = service[1]
 
 		# add the service
-	 	txtrecord = ""
+		txtrecord = ""
 		if (len(service) == 2 or service[2] == "") :
 			txtrecord = chr(0)
 		else :
@@ -191,34 +191,34 @@ def sendUpdateForInterface(interface) :
 	update.use_edns(edns=True, ednsflags=TTL_long, options=[leaseTimeOption, ownerOption])
 
 	if (DEBUG) :
-		print "-sendUpdateForInterface: request: ", update
+		print("-sendUpdateForInterface: request: ", update)
 
 
 	# send request to proxy
 	try:
 		if (DEBUG) :
-			print "-sendUpdateForInterface: sending update to " + proxy['ip']
+			print("-sendUpdateForInterface: sending update to " + proxy['ip'])
 
 		response = dns.query.udp(update, proxy['ip'], timeout=10, port=int(proxy['port']))
 
 		if (DEBUG) :
-			print "-sendUpdateForInterface: response: ", response
+			print("-sendUpdateForInterface: response: ", response)
 
 		rcode = response.rcode()
 		if rcode != dns.rcode.NOERROR:
-			print "Unable to register with SleepProxy " + proxy['name'] + " (" + proxy['ip'] + ":" + proxy['port'] + ") - Errcode: " + rcode
-			print response
+			print("Unable to register with SleepProxy " + proxy['name'] + " (" + proxy['ip'] + ":" + proxy['port'] + ") - Errcode: " + rcode)
+			print(response)
 
-	except DNSException, e:
-		print "Unable to register with SleepProxy " + proxy['name'] + " (" + proxy['ip'] + ":" + proxy['port'] + ")"
-		print e.__class__, e
+	except DNSException as e:
+		print("Unable to register with SleepProxy " + proxy['name'] + " (" + proxy['ip'] + ":" + proxy['port'] + ")")
+		print(e.__class__, e)
 
 
 
 def discoverServices(ipArray) :
 # discover all currently announced services from given IPs
 	if (DEBUG) :
-		print "-discoverServices: IPs: " + ", ".join(ipArray)
+		print("-discoverServices: IPs: " + ", ".join(ipArray))
 
 	services = []
 	cmd = "avahi-browse --all --resolve --parsable --no-db-lookup --terminate 2>/dev/null | grep '^=;'"
@@ -230,7 +230,7 @@ def discoverServices(ipArray) :
 		# check length
 		if (len(lineArr) < 10) :
 			p.terminate()
-			print "discovering services failed for: " + str(ipArray)
+			print("discovering services failed for: " + str(ipArray))
 			break
 
 		else :
@@ -247,7 +247,7 @@ def discoverServices(ipArray) :
 	p.wait()
 
 	if (DEBUG) :
-		print "-discoverServices: discovered Services: ", services
+		print("-discoverServices: discovered Services: ", services)
 
 	return services
 
@@ -256,7 +256,7 @@ def discoverServices(ipArray) :
 def discoverSleepProxyForInterface(interface) :
 
 	if (DEBUG) :
-		print "-discoverSleepProxyForInterface: Interface: ", interface
+		print("-discoverSleepProxyForInterface: Interface: ", interface)
 
 	cmd = "avahi-browse --resolve --parsable --no-db-lookup --terminate _sleep-proxy._udp 2>/dev/null | grep '^=;" + interface.rsplit(":")[0] + "'"
 
@@ -280,7 +280,7 @@ def discoverSleepProxyForInterface(interface) :
 		properties = lineArr[3].rsplit(" ")[0]
 
 		if (DEBUG) :
-			print "-discoverSleepProxyForInterface: available proxy: ", currProxy, " with properties: ", properties
+			print("-discoverSleepProxyForInterface: available proxy: ", currProxy, " with properties: ", properties)
 
 		# choose the server with lowest properties and prefer none 169.254.X.X addresses
 		if (minProperties == "" or minProperties > properties or (proxy and proxy['ip'].startswith('169.254.'))):
@@ -291,7 +291,7 @@ def discoverSleepProxyForInterface(interface) :
 	p.wait()
 
 	if (DEBUG) :
-		print "-discoverSleepProxyForInterface: selected proxy: ", proxy, " with properties: ", minProperties
+		print("-discoverSleepProxyForInterface: selected proxy: ", proxy, " with properties: ", minProperties)
 
 	return proxy
 
